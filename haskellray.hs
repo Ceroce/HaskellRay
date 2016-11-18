@@ -3,6 +3,7 @@ import Vector
 import Ray
 import Sphere
 import Hitable
+import Camera
 
 renderingWidth = 200
 renderingHeight = 100
@@ -30,12 +31,8 @@ colorForRayAndSpheres ray (sph:sphs) = case result of
     where result = hitByRay sph ray rayRange
 
 rayForXY :: Int -> Int -> Ray
-rayForXY x y = Ray { origin = Vec3 0.0 0.0 0.0
-                   , direction = lowerLeft + vec3FromFloat u * horiz + vec3FromFloat v * vert }
-    where lowerLeft = Vec3 (-2.0) (-1.0) (-1.0)
-          horiz = Vec3 4.0 0.0 0.0
-          vert  = Vec3 0.0 2.0 0.0
-          u = fromIntegral x / fromIntegral renderingWidth
+rayForXY x y = rayForUV u v
+    where u = fromIntegral x / fromIntegral renderingWidth
           v = 1.0 - fromIntegral y / fromIntegral renderingHeight
 
 colorAtXY :: Int -> Int -> Vec3
