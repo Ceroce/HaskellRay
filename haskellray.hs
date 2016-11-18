@@ -7,6 +7,9 @@ import Hitable
 renderingWidth = 200
 renderingHeight = 100
 
+-- For whatever reason, collisions with the ray are limited to a range of values of t
+-- I might remove it later if it does not prove to be useful
+rayRange = (0, 1000000)
 
 backgroundColorForRay :: Ray -> Vec3
 backgroundColorForRay ray = mix white blue t
@@ -15,18 +18,16 @@ backgroundColorForRay ray = mix white blue t
           white = Vec3 1.0 1.0 1.0
           blue = Vec3 0.5 0.7 1.0
 
--- colorForRay :: Ray -> Vec3
--- colorForRay ray = if root > 0.0 then (vec3FromFloat 0.5) * (normal + vec3FromFloat 1.0)
---     else backgroundColorForRay ray
---     where   sphere = Sphere { center = Vec3 0.0 0.0 (-1.0), radius = 0.5}
---             result = hitByRay sphere ray
+spheres :: [Sphere]
+spheres = [ Sphere { center = Vec3 0.0 0.0 (-1), radius = 0.5}
+          , Sphere { center = Vec3 0.0 (-100.5)(-1), radius = 100}]
 
-colorForRay :: Ray -> Vec3
-colorForRay ray = case result of
+colorForRayAndSpheres :: Ray -> [Sphere] -> Vec3
+colorForRayAndSpheres ray [] = backgroundColorForRay ray
+colorForRayAndSpheres ray (sph:sphs) = case result of
     FrontHit intersection -> (vec3FromFloat 0.5) * (normal intersection + vec3FromFloat 1.0)
-    NoHit -> backgroundColorForRay ray
-    where   sphere = Sphere { center = Vec3 0.0 0.0 (-1.0), radius = 0.5}
-            result = hitByRay sphere ray (0, 1000000)
+    NoHit -> colorForRayAndSpheres ray sphs
+    where result = hitByRay sph ray rayRange
 
 rayForXY :: Int -> Int -> Ray
 rayForXY x y = Ray { origin = Vec3 0.0 0.0 0.0
@@ -38,7 +39,7 @@ rayForXY x y = Ray { origin = Vec3 0.0 0.0 0.0
           v = 1.0 - fromIntegral y / fromIntegral renderingHeight
 
 colorAtXY :: Int -> Int -> Vec3
-colorAtXY x y = colorForRay $ rayForXY x y
+colorAtXY x y = colorForRayAndSpheres (rayForXY x y) spheres
 
 pixelAtXY :: Int -> Int -> PixelRGB8
 pixelAtXY x y = PixelRGB8  (floor (255.99 * r)) (floor (255.99 * g)) (floor (255.99 * b))
