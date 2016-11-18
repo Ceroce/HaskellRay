@@ -1,4 +1,4 @@
-module Vector (Vec3 (..), vec3FromFloat, len, normalize, mix) where
+module Vector (Vec3 (..), vec3FromFloat, len, normalize, dot, mix) where
 
 data Vec3 = Vec3 { x :: Float
                  , y :: Float
@@ -30,8 +30,11 @@ squaredLen (Vec3 x y z) = x * x + y * y + z * z
 normalize :: Vec3 -> Vec3
 normalize v = v / (vec3FromFloat $ len v)
 
-dot :: Vec3 -> Vec3 -> Vec3
-dot (Vec3 x0 y0 z0) (Vec3 x1 y1 z1)
+dot :: Vec3 -> Vec3 -> Float
+dot (Vec3 x0 y0 z0) (Vec3 x1 y1 z1) = x0*x1 + y0*y1 + z0*z1
+
+cross :: Vec3 -> Vec3 -> Vec3
+cross (Vec3 x0 y0 z0) (Vec3 x1 y1 z1)
     = Vec3 (x0*y1 - x1*y0) (y0*z1 - y1*z0) (z0*x1 - z1*x0)
 
 -- Linear interpolation

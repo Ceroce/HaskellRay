@@ -1,16 +1,26 @@
 import Codec.Picture    -- Juicy.Pixels
 import Vector
 import Ray
+import Sphere
 
 renderingWidth = 200
 renderingHeight = 100
 
-colorForRay :: Ray -> Vec3
-colorForRay ray = mix white blue t
+
+backgroundColorForRay :: Ray -> Vec3
+backgroundColorForRay ray = mix white blue t
     where normDir = normalize $ direction ray
           t = 0.5 * (y normDir + 1.0)
           white = Vec3 1.0 1.0 1.0
           blue = Vec3 0.5 0.7 1.0
+
+colorForRay :: Ray -> Vec3
+colorForRay ray = if root > 0.0 then (vec3FromFloat 0.5) * (normal + vec3FromFloat 1.0)
+    else backgroundColorForRay ray
+    where   sphere = Sphere { center = Vec3 0.0 0.0 (-1.0), radius = 0.5}
+            root = rootSphereHitByRay sphere ray
+            hitPoint = pointAlongRay ray root
+            normal = normalize (hitPoint - center sphere)
 
 rayForXY :: Int -> Int -> Ray
 rayForXY x y = Ray { origin = Vec3 0.0 0.0 0.0
