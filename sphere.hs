@@ -1,10 +1,12 @@
-module Sphere (Sphere (..), isSphereHitByRay, rootSphereHitByRay) where
+module Sphere (Sphere (..), hitByRay) where
 
+import Hitable
 import Vector
 import Ray
 
 data Sphere = Sphere { center :: Vec3
                      , radius :: Float } deriving (Show)
+
 
 {- Injecting the equation of a ray into the equation of a sphere
 provides a 2nd order equation:
@@ -12,16 +14,28 @@ provides a 2nd order equation:
 if discriminant == 0 the sphere is hit once (border of the sphere),
 if discriminant > 0, the sphere is hit twice (front and back)
 -}
-isSphereHitByRay :: Sphere -> Ray -> Bool
-isSphereHitByRay sphere ray = rootSphereHitByRay sphere ray > 0.0
-
--- We only consider a single root: the one closer to the camera
--- The root is the value of t in the Ray's equation.
-rootSphereHitByRay :: Sphere -> Ray -> Float
-rootSphereHitByRay sphere ray = if discr > 0 then (-b - sqrt discr) / (2.0 * a) else -1.0
+hitByRay :: Sphere -> Ray -> (Float, Float) -> HitResult
+hitByRay sphere ray range =
+    if discr > 0
+    then    if inRange rootClose range
+            then FrontHit $ intersection ray rootClose sphere
+            else    if inRange rootFar range
+                    then FrontHit $ intersection ray rootFar sphere
+                    else NoHit
+    else NoHit
     where   oc = origin ray - center sphere
             sphRad = radius sphere
             a = dot (direction ray) (direction ray)
-            b = 2.0 * dot oc (direction ray)
+            b = 2 * dot oc (direction ray)
             c = dot oc oc - sphRad * sphRad
-            discr = b * b - 4.0 * a * c
+            discr = b * b - 4 * a * c
+            rootClose = (-b - sqrt discr) / (2 * a)
+            rootFar   = (-b + sqrt discr) / (2 * a)
+
+intersection :: Ray -> Float -> Sphere -> HitIntersection
+intersection ray root sphere = HitIntersection root point normal
+    where   point = pointAlongRay ray root
+            normal = (point - center sphere) / vec3FromFloat (radius sphere)
+
+inRange :: Float -> (Float, Float) -> Bool
+inRange t (tMin, tMax) = (tMin < t) && (t < tMax)
