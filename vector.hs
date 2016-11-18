@@ -1,6 +1,8 @@
-module Vector (Vec3 (..), len) where
+module Vector (Vec3 (..), vec3FromFloat, len, normalize, mix) where
 
-data Vec3 = Vec3 Float Float Float deriving (Show)
+data Vec3 = Vec3 { x :: Float
+                 , y :: Float
+                 , z :: Float } deriving (Show)
 
 -- Since Vec3 inherits the Num class, all operators of Num must be defined
 instance Num Vec3 where
@@ -31,3 +33,7 @@ normalize v = v / (vec3FromFloat $ len v)
 dot :: Vec3 -> Vec3 -> Vec3
 dot (Vec3 x0 y0 z0) (Vec3 x1 y1 z1)
     = Vec3 (x0*y1 - x1*y0) (y0*z1 - y1*z0) (z0*x1 - z1*x0)
+
+-- Linear interpolation
+mix :: Vec3 -> Vec3 -> Float -> Vec3
+mix u v a = (vec3FromFloat (1.0 - a)) * u + (vec3FromFloat a) * v

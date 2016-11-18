@@ -1,14 +1,28 @@
 import Codec.Picture    -- Juicy.Pixels
 import Vector
+import Ray
 
 renderingWidth = 200
 renderingHeight = 100
 
+colorForRay :: Ray -> Vec3
+colorForRay ray = mix white blue t
+    where normDir = normalize $ direction ray
+          t = 0.5 * (y normDir + 1.0)
+          white = Vec3 1.0 1.0 1.0
+          blue = Vec3 0.5 0.7 1.0
+
+rayForXY :: Int -> Int -> Ray
+rayForXY x y = Ray { origin = Vec3 0.0 0.0 0.0
+                   , direction = lowerLeft + vec3FromFloat u * horiz + vec3FromFloat v * vert }
+    where lowerLeft = Vec3 (-2.0) (-1.0) (-1.0)
+          horiz = Vec3 4.0 0.0 0.0
+          vert  = Vec3 0.0 2.0 0.0
+          u = fromIntegral x / fromIntegral renderingWidth
+          v = 1.0 - fromIntegral y / fromIntegral renderingHeight
+
 colorAtXY :: Int -> Int -> Vec3
-colorAtXY x y = Vec3 r g b
-    where r = fromIntegral x / fromIntegral renderingWidth
-          g = fromIntegral y / fromIntegral renderingHeight
-          b = 0.2
+colorAtXY x y = colorForRay $ rayForXY x y
 
 pixelAtXY :: Int -> Int -> PixelRGB8
 pixelAtXY x y = PixelRGB8  (floor (255.99 * r)) (floor (255.99 * g)) (floor (255.99 * b))
