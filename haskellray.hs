@@ -5,7 +5,6 @@ import Ray
 import Sphere
 import Hitable
 import Camera
-import Generated as Gen
 
 renderingWidth = 200
 renderingHeight = 100
@@ -40,9 +39,18 @@ rayForXY (x, y) = rayForUV u v
 colorAtXY :: (Float, Float) -> Vec3
 colorAtXY coord = colorForRayAndSpheres (rayForXY coord) spheres
 
+-- Generate pairs of pseudo-random numbers between 0 and 1
+jitter :: Int -> [(Float, Float)]
+jitter count = zip x y
+    where g0 = Rand.mkStdGen 0
+          g1 = Rand.mkStdGen 1000000 -- Take a seed big enough so g0's serie does not overlap
+          x = take count (randoms g0 :: [Float])
+          y = take count (randoms g1 :: [Float])
+
 supersampledColorAtXY :: (Float, Float) -> Vec3
-supersampledColorAtXY (x, y) = colorSum / (fromIntegral $ length jitter)
-    where jitteredCoords = map (\(jX, jY) -> (x+jX, y+jY)) jitter
+supersampledColorAtXY (x, y) = colorSum / (fromIntegral rayCount)
+    where rayCount = 100
+          jitteredCoords = map (\(jX, jY) -> (x+jX, y+jY)) $ jitter rayCount
           colorSum = foldl (+) (vec3FromFloat 0.0) (map colorAtXY jitteredCoords)
 
 pixelAtXY :: Int -> Int -> PixelRGB8
