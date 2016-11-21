@@ -1,9 +1,11 @@
 import Codec.Picture    -- Juicy.Pixels
+import System.Random as Rand
 import Vector
 import Ray
 import Sphere
 import Hitable
 import Camera
+import Generated as Gen
 
 renderingWidth = 200
 renderingHeight = 100
@@ -30,17 +32,22 @@ colorForRayAndSpheres ray (sph:sphs) = case result of
     NoHit -> colorForRayAndSpheres ray sphs
     where result = hitByRay sph ray rayRange
 
-rayForXY :: Int -> Int -> Ray
-rayForXY x y = rayForUV u v
-    where u = fromIntegral x / fromIntegral renderingWidth
-          v = 1.0 - fromIntegral y / fromIntegral renderingHeight
+rayForXY :: (Float, Float) -> Ray
+rayForXY (x, y) = rayForUV u v
+    where u = x / fromIntegral renderingWidth
+          v = 1.0 - y / fromIntegral renderingHeight
 
-colorAtXY :: Int -> Int -> Vec3
-colorAtXY x y = colorForRayAndSpheres (rayForXY x y) spheres
+colorAtXY :: (Float, Float) -> Vec3
+colorAtXY coord = colorForRayAndSpheres (rayForXY coord) spheres
+
+supersampledColorAtXY :: (Float, Float) -> Vec3
+supersampledColorAtXY (x, y) = colorSum / (fromIntegral $ length jitter)
+    where jitteredCoords = map (\(jX, jY) -> (x+jX, y+jY)) jitter
+          colorSum = foldl (+) (vec3FromFloat 0.0) (map colorAtXY jitteredCoords)
 
 pixelAtXY :: Int -> Int -> PixelRGB8
 pixelAtXY x y = PixelRGB8  (floor (255.99 * r)) (floor (255.99 * g)) (floor (255.99 * b))
-    where (Vec3 r g b) = colorAtXY x y
+    where (Vec3 r g b) = supersampledColorAtXY (fromIntegral x, fromIntegral y)
 
 main = do
     let path = "image.png"
