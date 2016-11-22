@@ -1,0 +1,3 @@
+ghc haskellray.hs
+./haskellray
+open image.png

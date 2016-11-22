@@ -5,7 +5,7 @@ import Vector
 import Ray
 
 data Sphere = Sphere { center :: Vec3
-                     , radius :: Float } deriving (Show)
+                     , radius :: Float} deriving (Show)
 
 
 {- Injecting the equation of a ray into the equation of a sphere
